@@ -1,0 +1,8 @@
+facebook-business==20.0.0
+python-dotenv==1.0.1
+pydantic==2.6.4
+tenacity==8.2.3
+openai==1.14.0
+requests==2.31.0
+gspread==6.1.2
+google-auth==2.29.0

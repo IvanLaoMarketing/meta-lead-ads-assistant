@@ -1,0 +1,19 @@
+{
+  "nome_progetto": "Lancio_Corso_Automation_2026",
+  "obiettivo": "LEAD_GENERATION",
+  "url_landing_page": "https://laoivan.com/corso",
+  "budget_giornaliero": 50.00,
+  "tipo_budget": "CBO",
+  "valuta": "EUR",
+  "data_inizio": "2026-04-10",
+  "data_fine": null,
+  "descrizione_prodotto": "Corso avanzato su n8n e Make per professionisti del marketing e imprenditori che vogliono automatizzare i propri processi aziendali.",
+  "target_ideale": "Imprenditori, marketer, freelance e consulenti italiani interessati all'automazione, al no-code e alla digital transformation. Età 28-50.",
+  "location": ["IT"],
+  "lingua": "it",
+  "stile_visivo": "dark tech, sfondo scuro #0d0d0d, accenti rosa #E1306C e viola #833AB4, testo bianco, mood professionale e tech-forward",
+  "tono_copy": "diretto, autorevole, orientato ai risultati. No linguaggio motivazionale generico.",
+  "cta_principale": "Scopri il Corso",
+  "genera_video": false,
+  "note_aggiuntive": "Campagna ABO con 2 Ad Set: uno broad (interessi marketing automation) e uno retargeting visitatori landing page."
+}
