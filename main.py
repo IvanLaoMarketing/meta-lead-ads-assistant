@@ -357,6 +357,129 @@ def _chiedi_interessi(brief: dict) -> list:
 
 
 # ─────────────────────────────────────────────
+# WIZARD COMPILAZIONE BRIEF INTERATTIVO
+# ─────────────────────────────────────────────
+
+def wizard_brief_interattivo() -> dict:
+    """
+    Guida l'utente nella compilazione del brief direttamente da terminale.
+    Restituisce un dizionario brief pronto per la pipeline.
+    Rende il file brief.json opzionale.
+    """
+    print("\n  ┌─────────────────────────────────────────────────────────┐")
+    print("  │  COMPILAZIONE BRIEF — Nuova Campagna                     │")
+    print("  └─────────────────────────────────────────────────────────┘")
+    print("  Compila i dati della campagna. Premi INVIO per usare il valore suggerito.\n")
+
+    brief = {}
+
+    # ── Dati base ────────────────────────────────────────────────
+    brief["nome_progetto"] = _input_obbligatorio(
+        "  Nome progetto (es. Lancio_Corso_Maggio_2026): "
+    ).replace(" ", "_")
+
+    brief["url_landing_page"] = _input_obbligatorio(
+        "  URL Landing Page (es. https://tuosito.com/offerta): "
+    )
+
+    # ── Budget ───────────────────────────────────────────────────
+    print()
+    tipo_budget = _input_opzionale("  Tipo budget — ABO (per Ad Set) o CBO (per Campagna)", "CBO").upper()
+    brief["tipo_budget"] = tipo_budget if tipo_budget in ("ABO", "CBO") else "CBO"
+
+    while True:
+        try:
+            budget_str = _input_opzionale("  Budget giornaliero in EUR (es. 50)", "50")
+            brief["budget_giornaliero"] = float(budget_str)
+            break
+        except ValueError:
+            print("  ⚠  Inserisci un numero valido (es. 50 o 30.50)")
+
+    # ── Date ─────────────────────────────────────────────────────
+    data_inizio = _input_opzionale(
+        "  Data inizio campagna (YYYY-MM-DD, lascia vuoto per oggi)", ""
+    )
+    brief["data_inizio"] = data_inizio if data_inizio else datetime.now().strftime("%Y-%m-%d")
+    brief["data_fine"] = _input_opzionale("  Data fine campagna (YYYY-MM-DD, opzionale)", "") or None
+    brief["valuta"] = "EUR"
+
+    # ── Prodotto e target ─────────────────────────────────────────
+    print()
+    print("  ┌─────────────────────────────────────────────────────────┐")
+    print("  │  Descrizione prodotto e target                           │")
+    print("  └─────────────────────────────────────────────────────────┘")
+    brief["descrizione_prodotto"] = _input_obbligatorio(
+        "  Descrivi il prodotto/servizio (2-3 righe): "
+    )
+    brief["target_ideale"] = _input_obbligatorio(
+        "  Descrivi il target ideale (eta', professione, interessi): "
+    )
+
+    # Location
+    location_str = _input_opzionale("  Paese target (es. IT, IT,CH per piu' paesi)", "IT")
+    brief["location"] = [l.strip().upper() for l in location_str.split(",") if l.strip()]
+
+    # ── Copy e creativita' ────────────────────────────────────────
+    print()
+    print("  ┌─────────────────────────────────────────────────────────┐")
+    print("  │  Stile copy e creativita'                                │")
+    print("  └─────────────────────────────────────────────────────────┘")
+    brief["tono_copy"] = _input_opzionale(
+        "  Tono del copy",
+        "diretto, professionale, orientato ai risultati"
+    )
+    brief["stile_visivo"] = _input_opzionale(
+        "  Stile visivo per le immagini",
+        "professionale, colori brand aziendali, sfondo chiaro"
+    )
+    brief["cta_principale"] = _input_opzionale(
+        "  CTA principale (es. Scopri di piu', Iscriviti, Richiedi info)",
+        "Scopri di piu'"
+    )
+
+    # Video
+    genera_video_str = _input_opzionale("  Generare anche un video? (s/n)", "n").lower()
+    brief["genera_video"] = genera_video_str in ("s", "si", "y", "yes")
+
+    brief["note_aggiuntive"] = _input_opzionale(
+        "  Note aggiuntive per gli agenti (opzionale)", ""
+    )
+
+    # ── Riepilogo ─────────────────────────────────────────────────
+    print()
+    print("  ┌─────────────────────────────────────────────────────────┐")
+    print("  │  RIEPILOGO BRIEF                                         │")
+    print("  └─────────────────────────────────────────────────────────┘")
+    print(f"  Progetto    : {brief['nome_progetto']}")
+    print(f"  Landing     : {brief['url_landing_page']}")
+    print(f"  Budget      : EUR {brief['budget_giornaliero']}/giorno ({brief['tipo_budget']})")
+    print(f"  Location    : {', '.join(brief['location'])}")
+    print(f"  Inizio      : {brief['data_inizio']}")
+    print(f"  Prodotto    : {brief['descrizione_prodotto'][:60]}...")
+    print(f"  Target      : {brief['target_ideale'][:60]}...")
+    print(f"  CTA         : {brief['cta_principale']}")
+    print(f"  Video       : {'Si' if brief['genera_video'] else 'No'}")
+    print()
+
+    conferma = _input_opzionale("  Confermi il brief? (s/n)", "s").lower()
+    if conferma not in ("s", "si", "y", "yes"):
+        print("  -> Brief annullato. Riavvia con: python main.py crea\n")
+        sys.exit(0)
+
+    # Salva opzionalmente il brief come JSON per riutilizzo futuro
+    salva = _input_opzionale("  Salvare il brief come file JSON per riutilizzarlo? (s/n)", "s").lower()
+    if salva in ("s", "si", "y", "yes"):
+        nome_file = f"data/brief_{brief['nome_progetto']}.json"
+        os.makedirs("data", exist_ok=True)
+        with open(nome_file, "w", encoding="utf-8") as f:
+            json.dump(brief, f, indent=2, ensure_ascii=False)
+        print(f"  ✓ Brief salvato in: {nome_file}")
+
+    print()
+    return brief
+
+
+# ─────────────────────────────────────────────
 # COMANDI
 # ─────────────────────────────────────────────
 
@@ -379,14 +502,35 @@ def cmd_crea(args):
     """Comando: crea una nuova campagna con wizard interattivo."""
     from agents.orchestrator import esegui_pipeline
 
-    brief = carica_brief(args.brief)
-
     print("\n" + "=" * 66)
     print("  CREAZIONE CAMPAGNA — META Lead ADS Assistant")
     print("=" * 66)
-    print(f"  Progetto : {brief.get('nome_progetto')}")
-    print(f"  Budget   : EUR {brief.get('budget_giornaliero')}/giorno ({brief.get('tipo_budget', 'CBO')})")
-    print(f"  Obiettivo: Lead Generation -> {brief.get('url_landing_page')}")
+
+    # Scelta modalita' brief
+    brief_esiste = os.path.exists(args.brief)
+    if brief_esiste:
+        print(f"  Trovato file brief: {args.brief}")
+        print("  1. Usa il file brief esistente")
+        print("  2. Compila un nuovo brief da terminale")
+        print("  3. Compila da terminale e sovrascrivi il file esistente\n")
+        scelta_brief = _input_opzionale("  Scelta (1/2/3)", "1")
+    else:
+        print(f"  File brief non trovato ({args.brief}).")
+        print("  Avvio compilazione guidata del brief...\n")
+        scelta_brief = "2"
+
+    if scelta_brief == "1":
+        brief = carica_brief(args.brief)
+        print(f"  Progetto : {brief.get('nome_progetto')}")
+        print(f"  Budget   : EUR {brief.get('budget_giornaliero')}/giorno ({brief.get('tipo_budget', 'CBO')})")
+        print(f"  Obiettivo: Lead Generation -> {brief.get('url_landing_page')}")
+    else:
+        brief = wizard_brief_interattivo()
+        if scelta_brief == "3":
+            with open(args.brief, "w", encoding="utf-8") as f:
+                json.dump(brief, f, indent=2, ensure_ascii=False)
+            print(f"  \u2713 Brief salvato in: {args.brief}")
+
     print("=" * 66)
 
     # ── Domande interattive ────────────────────────────────────────
