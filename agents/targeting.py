@@ -126,7 +126,20 @@ Restituisci SOLO il JSON richiesto."""
         raise
 
     # Step 2: Cerca gli ID degli interessi su Meta
-    interessi = _cerca_interessi_meta(suggerimenti["keyword_interessi"])
+    # Unisci keyword GPT-4 + interessi manuali dal brief (se presenti)
+    keywords_base = suggerimenti["keyword_interessi"]
+    interessi_manuali = brief.get("_interessi_manuali", [])
+    if interessi_manuali:
+        keywords_combinate = list(dict.fromkeys(keywords_base + interessi_manuali))  # deduplicati
+        logger.info(f"[Targeting] Aggiunti {len(interessi_manuali)} interessi manuali: {interessi_manuali}")
+    else:
+        keywords_combinate = keywords_base
+    interessi = _cerca_interessi_meta(keywords_combinate)
+
+    # Mappa lingua -> ID locale Meta
+    lingua = brief.get("lingua", "it").lower()
+    locale_map = {"it": 6, "en": 24, "es": 8, "fr": 7, "de": 5, "pt": 9}
+    locale_id = locale_map.get(lingua, 6)
 
     # Step 3: Costruisci targeting_spec per Meta API
     targeting_spec = {
@@ -136,7 +149,7 @@ Restituisci SOLO il JSON richiesto."""
         "age_min": suggerimenti.get("eta_min", 25),
         "age_max": suggerimenti.get("eta_max", 55),
         "interests": [{"id": i["id"], "name": i["name"]} for i in interessi],
-        "locales": [6]  # 6 = Italiano
+        "locales": [locale_id]
     }
 
     # Gestione genere
